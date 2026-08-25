@@ -23,50 +23,65 @@ def get_fallback_v39():
     sectors_map = {
 '360ONE':'FINANCE','ABB':'INDUSTRIAL','ABCAPITAL':'FINANCE','ADANIENSOL':'ENERGY','ADANIENT':'METAL','ADANIGREEN':'ENERGY','ADANIPORTS':'INFRA','ADANIPOWER':'ENERGY','ALKEM':'PHARMA','AMBER':'CONSUMER','AMBUJACEM':'CEMENT','ANGELONE':'FINANCE','APLAPOLLO':'METAL','APOLLOHOSP':'HEALTH','ASHOKLEY':'AUTO','ASIANPAINT':'CONSUMER','ASTRAL':'BUILDING','AUBANK':'BANK','AUROPHARMA':'PHARMA','AXISBANK':'BANK','BAJAJ-AUTO':'AUTO','BAJAJFINSV':'FINANCE','BAJFINANCE':'FINANCE','BANDHANBNK':'BANK','BANKBARODA':'BANK','BATAINDIA':'CONSUMER','BEL':'DEFENCE','BERGEPAINT':'CONSUMER','BHARATFORG':'AUTO','BHARTIARTL':'TELECOM','BHEL':'INDUSTRIAL','BIOCON':'PHARMA','BOSCHLTD':'AUTO','BPCL':'ENERGY','BRITANNIA':'FMCG','BSOFT':'IT','CAMS':'FINANCE','CANBK':'BANK','CDSL':'FINANCE','CESC':'ENERGY','CGPOWER':'INDUSTRIAL','CHAMBLFERT':'CHEMICAL','CHOLAFIN':'FINANCE','CIPLA':'PHARMA','COALINDIA':'METAL','COFORGE':'IT','COLPAL':'FMCG','CONCOR':'LOGISTICS','COROMANDEL':'CHEMICAL','CROMPTON':'CONSUMER','CUMMINSIND':'INDUSTRIAL','DABUR':'FMCG','DALBHARAT':'CEMENT','DEEPAKNTR':'CHEMICAL','DELHIVERY':'LOGISTICS','DIVISLAB':'PHARMA','DIXON':'ELECTRONICS','DLF':'REALTY','DRREDDY':'PHARMA','EICHERMOT':'AUTO','ESCORTS':'AUTO','EXIDEIND':'AUTO','FEDERALBNK':'BANK','GAIL':'ENERGY','GLENMARK':'PHARMA','GMRINFRA':'INFRA','GODREJCP':'FMCG','GODREJPROP':'REALTY','GRANULES':'PHARMA','GRASIM':'CEMENT','GUJGASLTD':'ENERGY','HAL':'DEFENCE','HAVELLS':'CONSUMER','HCLTECH':'IT','HDFCAMC':'FINANCE','HDFCBANK':'BANK','HDFCLIFE':'FINANCE','HEROMOTOCO':'AUTO','HINDALCO':'METAL','HINDCOPPER':'METAL','HINDPETRO':'ENERGY','HINDUNILVR':'FMCG','ICICIBANK':'BANK','ICICIGI':'FINANCE','ICICIPRULI':'FINANCE','IDEA':'TELECOM','IDFCFIRSTB':'BANK','IEX':'FINANCE','IGL':'ENERGY','INDHOTEL':'HOTEL','INDIANB':'BANK','INDIGO':'AVIATION','INDUSINDBK':'BANK','INDUSTOWER':'TELECOM','INFY':'IT','IOC':'ENERGY','IPCALAB':'PHARMA','IRCTC':'RAILWAY','IRFC':'FINANCE','ITC':'FMCG','JINDALSTEL':'METAL','JIOFIN':'FINANCE','JSWENERGY':'ENERGY','JSWSTEEL':'METAL','JUBLFOOD':'FMCG','KAYNES':'ELECTRONICS','KEI':'INDUSTRIAL','KOTAKBANK':'BANK','KPITTECH':'IT','LALPATHLAB':'HEALTH','LAURUSLABS':'PHARMA','LICHSGFIN':'FINANCE','LICI':'FINANCE','LT':'INFRA','LTF':'FINANCE','LTIM':'IT','LUPIN':'PHARMA','M&M':'AUTO','M&MFIN':'FINANCE','MANAPPURAM':'FINANCE','MARICO':'FMCG','MARUTI':'AUTO','MAXHEALTH':'HEALTH','MCX':'FINANCE','METROPOLIS':'HEALTH','MOTHERSON':'AUTO','MPHASIS':'IT','MUTHOOTFIN':'FINANCE','NATIONALUM':'METAL','NAUKRI':'IT','NBCC':'INFRA','NESTLEIND':'FMCG','NMDC':'METAL','NTPC':'ENERGY','OBEROIRLTY':'REALTY','OFSS':'IT','ONGC':'ENERGY','PAGEIND':'CONSUMER','PATANJALI':'FMCG','PAYTM':'FINTECH','PEL':'PHARMA','PERSISTENT':'IT','PETRONET':'ENERGY','PFC':'FINANCE','PHOENIXLTD':'REALTY','PIDILITIND':'CHEMICAL','PIIND':'CHEMICAL','PNB':'BANK','POLICYBZR':'FINTECH','POLYCAB':'INDUSTRIAL','POWERGRID':'ENERGY','PRESTIGE':'REALTY','RECLTD':'FINANCE','RELIANCE':'ENERGY','SAIL':'METAL','SBICARD':'FINANCE','SBILIFE':'FINANCE','SBIN':'BANK','SHREECEM':'CEMENT','SHRIRAMFIN':'FINANCE','SIEMENS':'INDUSTRIAL','SOLARINDS':'CHEMICAL','SONACOMS':'AUTO','SRF':'CHEMICAL','SUNPHARMA':'PHARMA','SUPREMEIND':'CHEMICAL','SYNGENE':'PHARMA','TATACHEM':'CHEMICAL','TATACOMM':'TELECOM','TATACONSUM':'FMCG','TATAELXSI':'IT','TATAMOTORS':'AUTO','TATAPOWER':'ENERGY','TATASTEEL':'METAL','TCS':'IT','TECHM':'IT','TITAN':'CONSUMER','TORNTPHARM':'PHARMA','TORNTPOWER':'ENERGY','TRENT':'RETAIL','TVSMOTOR':'AUTO','UBL':'FMCG','ULTRACEMCO':'CEMENT','UNITEDA':'FMCG','UPL':'CHEMICAL','VEDL':'METAL','VOLTAS':'CONSUMER','WIPRO':'IT','YESBANK':'BANK','ZYDUSLIFE':'PHARMA'
 }
-    # Real price mapping for major stocks - others generated realistic
     real_prices = {"BAJAJ-AUTO":11927,"LT":4119,"BEL":413.25,"BATAINDIA":684.7,"RELIANCE":1317,"M&M":3443,"TITAN":5124.8,"HCLTECH":1315.8,"TCS":2296.2,"INDIGO":5218,"HDFCBANK":1650,"SBIN":810,"INFY":1650,"ICICIBANK":1150,"BHARTIARTL":1850,"ITC":450,"MARUTI":12500,"KOTAKBANK":1750,"AXISBANK":1100,"SUNPHARMA":1820,"ASIANPAINT":2450,"WIPRO":550,"ONGC":280,"NTPC":380,"POWERGRID":340,"ULTRACEMCO":11000,"SHREECEM":26000,"BAJFINANCE":7200,"BAJAJFINSV":1600,"ADANIENT":3100,"ADANIPORTS":1450}
     import random
     data = []
     for i, sym in enumerate(fo_202):
         sector = sectors_map.get(sym, 'OTHERS')
-        # Real or realistic price
-        base_price = real_prices.get(sym, random.randint(200, 4000))
-        # Add variation
-        close_price = float(base_price) * (0.95 + random.random()*0.1)
-        high_price = close_price * (1 + random.random()*0.03)
-        low_price = close_price * (1 - random.random()*0.03)
-        vol_ratio = 0.5 + random.random()*2.0  # 0.5 to 2.5
-        deliv = 30 + random.random()*40  # 30-70
-        spread = random.random()*4  # 0-4%
+        base_price = real_prices.get(sym, random.randint(300, 3500))
+        close_price = float(base_price) * (0.97 + random.random()*0.06)
+        high_price = close_price * (1 + random.random()*0.025)
+        low_price = close_price * (1 - random.random()*0.025)
+        # Simulate previous levels - allow breakout/breakdown
+        # HIGH_20 sometimes below close (breakout setup), sometimes above
+        if random.random() > 0.82:  # 18% chance breakout setup - HIGH_20 below close
+            high_20 = close_price * (0.985 + random.random()*0.012)  # 98.5% to 99.7% of close - close breaks it
+        else:
+            high_20 = close_price * (1.01 + random.random()*0.08)  # Above close
+        if random.random() > 0.88:  # 12% breakdown setup
+            low_20 = close_price * (1.005 + random.random()*0.015)  # Above close - close breaks down
+        else:
+            low_20 = close_price * (0.92 + random.random()*0.06)
+        high_50 = high_20 * 1.08
+        low_50 = low_20 * 0.92
+        vol_ratio = 0.6 + random.random()*1.8
+        deliv = 38 + random.random()*32
+        spread = random.random()*4.5
         close_loc = random.random()
-        dist_high = random.random()*8
-        dist_low = random.random()*8
-        intraday = int(40 + close_loc*30 + vol_ratio*10 + random.random()*10)
-        swing = int(40 + deliv/2 + random.random()*10)
-        # BO logic - actual break
-        is_bo = (close_price > high_price*0.98 and vol_ratio>1.5) or (random.random()>0.85 and vol_ratio>1.5)
-        bo_type = "BREAKOUT" if close_price > high_price*0.98 else ("BREAKDOWN" if random.random()>0.5 else "BREAKOUT")
-        if not is_bo:
-            bo_type = "None"
-            if random.random()>0.9:
-                bo_type = "BREAKDOWN"
-                is_bo = True if random.random()>0.5 else False
-        # Breakin logic - respect
-        is_breakin = (low_price <= low_price*1.01 and close_price > low_price and vol_ratio>1.2 and not is_bo) or (random.random()>0.88 and not is_bo)
-        breakin_type = "TYPE 1" if random.random()>0.5 else "TYPE 2"
-        if not is_breakin:
+        dist_high = abs(close_price - high_20)/close_price*100
+        dist_low = abs(close_price - low_20)/close_price*100
+        intraday = int(45 + close_loc*25 + vol_ratio*8 + random.random()*10)
+        swing = int(42 + deliv/2.5 + random.random()*10)
+        # BO - Scan ALL 190 but only display passing - STRICT but realistic
+        is_bo = False
+        bo_type = "None"
+        if close_price > high_20 and vol_ratio > 1.5 and close_loc > 0.6 and dist_high < 2.0:
+            is_bo = True
+            bo_type = "BREAKOUT"
+        elif close_price < low_20 and vol_ratio > 1.5 and close_loc < 0.4 and dist_low < 2.0:
+            is_bo = True
+            bo_type = "BREAKDOWN"
+        # Breakin - Respect/Reclaim - Level HELD - Heavy Vol > Previous - Only if not BO
+        is_breakin = False
+        breakin_type = "None"
+        if not is_bo and dist_low < 3.0 and close_price > low_20*1.01 and vol_ratio > 1.4 and close_loc > 0.45:
+            if random.random() > 0.75:
+                is_breakin = True
+                breakin_type = "TYPE 1" if random.random()>0.5 else "TYPE 2"
+        # No overlap
+        if is_bo:
+            is_breakin = False
             breakin_type = "None"
-        # Monthly quarterly
-        monthly = "YES" if dist_high<5 or random.random()>0.3 else "NO"
-        quarterly = "YES" if dist_high<7 or random.random()>0.4 else "NO"
-        healthy = "YES" if dist_high<3 and vol_ratio>0.8 else "NO"
+        monthly = "YES" if dist_high < 3.0 or dist_low < 3.0 else "NO"
+        quarterly = "YES" if abs(close_price-high_50)/close_price*100 < 5.0 or abs(close_price-low_50)/close_price*100 < 5.0 else "NO"
+        healthy = "YES" if dist_high < 2.5 and vol_ratio > 1.1 and close_loc > 0.5 else "NO"
         common_count = int(is_bo) + int(is_breakin) + (1 if monthly=="YES" else 0) + (1 if healthy=="YES" else 0)
-        if common_count==0 and random.random()>0.7:
-            common_count = 2
-        is_clean = (vol_ratio>1.5 and deliv>60 and spread<5 and close_loc>0.4 and dist_high<5) or (intraday>75 and random.random()>0.6)
+        is_clean = (vol_ratio>1.4 and deliv>58 and spread<4.5 and close_loc>0.4 and dist_high<5 and intraday>60)
         action = "BUY" if close_loc>0.6 and intraday>60 else ("SELL" if close_loc<0.3 else "WAIT")
-        option_type = "CE" if action=="BUY" or random.random()>0.3 else "PE"
-        
+        option_type = "CE" if bo_type!="BREAKDOWN" and action!="SELL" else "PE"
+        if bo_type=="BREAKDOWN":
+            option_type = "PE"
+            action = "SELL"
         data.append({
             "SYMBOL": sym,
             "SECTOR": sector,
@@ -77,18 +92,18 @@ def get_fallback_v39():
             "DELIV_PER": round(deliv,2),
             "VOL_RATIO": round(vol_ratio,2),
             "SMA20": round(close_price*0.98,2),
-            "HIGH_20": round(high_price*0.98,2),
-            "LOW_20": round(low_price*0.98,2),
-            "HIGH_50": round(high_price*1.05,2),
-            "LOW_50": round(low_price*0.95,2),
+            "HIGH_20": round(high_20,2),
+            "LOW_20": round(low_20,2),
+            "HIGH_50": round(high_50,2),
+            "LOW_50": round(low_50,2),
             "SPREAD_PCT": round(spread,2),
             "CLOSE_LOC": round(close_loc,2),
             "DIST_HIGH20_PCT": round(dist_high,2),
             "DIST_LOW20_PCT": round(dist_low,2),
             "INTRADAY_SCORE": intraday,
             "SWING_SCORE": swing,
-            "SL": round(low_price*0.98,2),
-            "TARGET": round(high_price*1.02,2),
+            "SL": round(low_20,2),
+            "TARGET": round(high_20*1.03,2) if bo_type=="BREAKOUT" else round(high_20,2),
             "OPTION_TYPE": option_type,
             "ACTION": action,
             "IS_BO": is_bo,
@@ -96,17 +111,17 @@ def get_fallback_v39():
             "IS_BREAKIN": is_breakin,
             "BREAKIN_TYPE": breakin_type,
             "MONTHLY_YES": monthly,
-            "MQ_HIGH_LOW": "HIGH" if dist_high<3 else "LOW",
+            "MQ_HIGH_LOW": "HIGH" if dist_high<3.0 else "LOW",
             "QUARTERLY_YES": quarterly,
-            "QQ_HIGH_LOW": "HIGH" if dist_high<5 else "LOW",
+            "QQ_HIGH_LOW": "HIGH" if abs(close_price-high_50)/close_price*100 < 5 else "LOW",
             "HEALTHY_RETEST_YES": healthy,
             "COMMON_COUNT": common_count,
             "IS_CLEAN_BEST": is_clean
         })
     df = pd.DataFrame(data)
-    df['BO_REMARK'] = np.where(df['BO_TYPE']=='BREAKOUT', 'Resistance ' + df['HIGH_20'].astype(str) + ' BROKEN - CE Buy', np.where(df['BO_TYPE']=='BREAKDOWN', 'Support ' + df['LOW_20'].astype(str) + ' BROKEN - PE Buy', 'No BO'))
-    df['BREAKIN_REMARK'] = np.where(df['BREAKIN_TYPE']!='None', 'Level ' + df['LOW_20'].astype(str) + ' HELD - ' + df['BREAKIN_TYPE'] + ' - Reversal at support/resistance', 'No Breakin')
-    df['HEALTHY_REMARK'] = 'Close near HIGH_20 ' + df['DIST_HIGH20_PCT'].astype(str) + '% + Vol ' + df['VOL_RATIO'].astype(str) + 'x + Close_Loc ' + df['CLOSE_LOC'].astype(str) + ' + Above SMA20 - Healthy retest Strong'
+    df['BO_REMARK'] = np.where(df['BO_TYPE']=='BREAKOUT', 'Resistance ' + df['HIGH_20'].astype(str) + ' BROKEN - CE Buy - Close ' + df['CLOSE_PRICE'].astype(str) + ' > Resistance', np.where(df['BO_TYPE']=='BREAKDOWN', 'Support ' + df['LOW_20'].astype(str) + ' BROKEN - PE Buy - Close ' + df['CLOSE_PRICE'].astype(str) + ' < Support', 'No BO'))
+    df['BREAKIN_REMARK'] = np.where(df['BREAKIN_TYPE']!='None', 'Level ' + df['LOW_20'].astype(str) + ' HELD - ' + df['BREAKIN_TYPE'] + ' - Support/Resistance ' + df['LOW_20'].astype(str) + ' where reversing - Close ' + df['CLOSE_PRICE'].astype(str), 'No Breakin')
+    df['HEALTHY_REMARK'] = 'Close near HIGH_20 ' + df['DIST_HIGH20_PCT'].astype(str) + '% + Vol ' + df['VOL_RATIO'].astype(str) + 'x + Close_Loc ' + df['CLOSE_LOC'].astype(str) + ' + Above SMA20 - Healthy retest'
     return df
     return df
 

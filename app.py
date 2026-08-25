@@ -100,13 +100,28 @@ def get_fallback_v39():
         touch_type_quarterly = qq_high_low if quarterly=="YES" else "None"
         
         healthy = "YES" if dist_high < 2.5 and vol_ratio > 1.1 and close_loc > 0.5 else "NO"
-        common_count = int(is_bo) + int(is_breakin) + (1 if monthly=="YES" else 0) + (1 if healthy=="YES" else 0) + (1 if quarterly=="YES" else 0)
         is_clean = (vol_ratio>1.4 and deliv>58 and spread<4.5 and close_loc>0.4 and dist_high<5 and intraday>60)
         action = "BUY" if close_loc>0.6 and intraday>60 else ("SELL" if close_loc<0.3 else "WAIT")
         option_type = "CE" if bo_type!="BREAKDOWN" and action!="SELL" else "PE"
         if bo_type=="BREAKDOWN":
             option_type = "PE"
             action = "SELL"
+        # Build TAB NUMBER list - Which tabs stock repeated in - Eg 2,3 or 2,4,5
+        tab_list = []
+        if is_bo:
+            tab_list.append("2")  # TAB 2 BO FILTER
+        if is_breakin:
+            tab_list.append("3")  # TAB 3 BREAKIN
+        if monthly=="YES" or quarterly=="YES":
+            tab_list.append("4")  # TAB 4 MONTHLY/QUARTERLY - Touch in last 5 days
+        if healthy=="YES":
+            tab_list.append("5")  # TAB 5 HEALTHY RETEST
+        if is_clean:
+            tab_list.append("8")  # TAB 8 CLEAN SCANNER
+        if intraday > 75:
+            tab_list.append("1")  # TAB 1 TOP 20
+        tab_numbers = ",".join(sorted(tab_list, key=int)) if tab_list else "None"
+        common_count = len(tab_list)
         data.append({
             "SYMBOL": sym,
             "SECTOR": sector,
@@ -145,6 +160,7 @@ def get_fallback_v39():
             "TOUCH_DATE": touch_date_str,
             "HEALTHY_RETEST_YES": healthy,
             "COMMON_COUNT": common_count,
+            "TAB_NUMBERS": tab_numbers,
             "IS_CLEAN_BEST": is_clean
         })
     df = pd.DataFrame(data)
@@ -246,11 +262,16 @@ elif selected == "6_SECTOR_HEATMAP":
     st.dataframe(df_sector[['SYMBOL','SECTOR','CLOSE_PRICE','INTRADAY_SCORE','SWING_SCORE','OPTION_TYPE']], use_container_width=True, height=300)
 
 elif selected == "7_COMMON_STOCKS":
-    st.markdown("### 7_COMMON STOCKS - SYMBOL SECTOR COUNT OF REPETATION")
+    st.markdown("### 7_COMMON STOCKS - SYMBOL SECTOR COUNT + TAB NUMBER (Which Tabs Repeated)")
+    st.info("NEW: TAB NUMBER column - Shows in which tabs stock repeated - Eg 2,3 means repeated in TAB 2 BO and TAB 3 BREAKIN - High probability if repeated in 2,3,4,5,8")
     df_common = df[df['COMMON_COUNT']>=2].sort_values('COMMON_COUNT', ascending=False)
-    display = df_common[['SYMBOL','SECTOR','COMMON_COUNT']]
-    display.columns = ['SYMBOL','SECTOR','COUNT OF REPETATION']
+    # Ensure TAB_NUMBERS exists
+    if 'TAB_NUMBERS' not in df_common.columns:
+        df_common['TAB_NUMBERS'] = df_common.apply(lambda x: "2,3" if x['IS_BO'] and x['IS_BREAKIN'] else ("2" if x['IS_BO'] else "3"), axis=1)
+    display = df_common[['SYMBOL','SECTOR','COMMON_COUNT','TAB_NUMBERS','CLOSE_PRICE','OPTION_TYPE']]
+    display.columns = ['SYMBOL','SECTOR','COUNT OF REPETATION','TAB NUMBER (Eg 2,3 = TAB2+TAB3)','CLOSE PRICE','CE/PE']
     st.dataframe(display, use_container_width=True, height=600)
+    st.success("TAB NUMBER logic: 1=TOP20, 2=BO FILTER, 3=BREAKIN, 4=MONTHLY/QUARTERLY Touch Last 5 Days, 5=HEALTHY RETEST, 8=CLEAN - Eg 2,3 = Repeated in BO and BREAKIN - Strong")
 
 elif selected == "8_CLEAN_SCANNER_LAST":
     st.markdown("### 8_CLEAN_SCANNER LAST TAB - ONLY SYMBOL SECTOR CE/PE INTRADAY SWING SCORE - Baki Background")

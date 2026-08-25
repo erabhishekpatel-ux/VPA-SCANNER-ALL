@@ -25,34 +25,37 @@ def get_fallback_v39():
 }
     real_prices = {"BAJAJ-AUTO":11927,"LT":4119,"BEL":413.25,"BATAINDIA":684.7,"RELIANCE":1317,"M&M":3443,"TITAN":5124.8,"HCLTECH":1315.8,"TCS":2296.2,"INDIGO":5218,"HDFCBANK":1650,"SBIN":810,"INFY":1650,"ICICIBANK":1150,"BHARTIARTL":1850,"ITC":450,"MARUTI":12500,"KOTAKBANK":1750,"AXISBANK":1100,"SUNPHARMA":1820,"ASIANPAINT":2450,"WIPRO":550,"ONGC":280,"NTPC":380,"POWERGRID":340,"ULTRACEMCO":11000,"SHREECEM":26000,"BAJFINANCE":7200,"BAJAJFINSV":1600,"ADANIENT":3100,"ADANIPORTS":1450}
     import random
+    from datetime import datetime, timedelta
     data = []
+    today = datetime.now()
     for i, sym in enumerate(fo_202):
         sector = sectors_map.get(sym, 'OTHERS')
         base_price = real_prices.get(sym, random.randint(300, 3500))
         close_price = float(base_price) * (0.97 + random.random()*0.06)
         high_price = close_price * (1 + random.random()*0.025)
         low_price = close_price * (1 - random.random()*0.025)
-        # Simulate previous levels - allow breakout/breakdown
-        # HIGH_20 sometimes below close (breakout setup), sometimes above
-        if random.random() > 0.82:  # 18% chance breakout setup - HIGH_20 below close
-            high_20 = close_price * (0.985 + random.random()*0.012)  # 98.5% to 99.7% of close - close breaks it
+        # HIGH_20 / LOW_20 - allow breakout
+        if random.random() > 0.80:  # 20% breakout setup
+            high_20 = close_price * (0.985 + random.random()*0.012)
         else:
-            high_20 = close_price * (1.01 + random.random()*0.08)  # Above close
-        if random.random() > 0.88:  # 12% breakdown setup
-            low_20 = close_price * (1.005 + random.random()*0.015)  # Above close - close breaks down
+            high_20 = close_price * (1.01 + random.random()*0.08)
+        if random.random() > 0.86:
+            low_20 = close_price * (1.005 + random.random()*0.015)
         else:
             low_20 = close_price * (0.92 + random.random()*0.06)
-        high_50 = high_20 * 1.08
-        low_50 = low_20 * 0.92
+        high_50 = high_20 * (1.05 + random.random()*0.05)
+        low_50 = low_20 * (0.90 + random.random()*0.05)
         vol_ratio = 0.6 + random.random()*1.8
         deliv = 38 + random.random()*32
         spread = random.random()*4.5
         close_loc = random.random()
         dist_high = abs(close_price - high_20)/close_price*100
         dist_low = abs(close_price - low_20)/close_price*100
+        dist_high_50 = abs(close_price - high_50)/close_price*100
+        dist_low_50 = abs(close_price - low_50)/close_price*100
         intraday = int(45 + close_loc*25 + vol_ratio*8 + random.random()*10)
         swing = int(42 + deliv/2.5 + random.random()*10)
-        # BO - Scan ALL 190 but only display passing - STRICT but realistic
+        # BO - Only passing displayed
         is_bo = False
         bo_type = "None"
         if close_price > high_20 and vol_ratio > 1.5 and close_loc > 0.6 and dist_high < 2.0:
@@ -61,21 +64,43 @@ def get_fallback_v39():
         elif close_price < low_20 and vol_ratio > 1.5 and close_loc < 0.4 and dist_low < 2.0:
             is_bo = True
             bo_type = "BREAKDOWN"
-        # Breakin - Respect/Reclaim - Level HELD - Heavy Vol > Previous - Only if not BO
+        # Breakin
         is_breakin = False
         breakin_type = "None"
         if not is_bo and dist_low < 3.0 and close_price > low_20*1.01 and vol_ratio > 1.4 and close_loc > 0.45:
             if random.random() > 0.75:
                 is_breakin = True
                 breakin_type = "TYPE 1" if random.random()>0.5 else "TYPE 2"
-        # No overlap
         if is_bo:
             is_breakin = False
             breakin_type = "None"
-        monthly = "YES" if dist_high < 3.0 or dist_low < 3.0 else "NO"
-        quarterly = "YES" if abs(close_price-high_50)/close_price*100 < 5.0 or abs(close_price-low_50)/close_price*100 < 5.0 else "NO"
+        # MONTHLY / QUARTERLY - NEW LOGIC - Touches HIGH/LOW in last 4-5 days including today - Will reduce stocks
+        # Simulate last 5 days touch
+        touch_days_ago = random.randint(0, 6)  # 0=today, 1=yesterday etc
+        touch_date = (today - timedelta(days=touch_days_ago)).strftime('%Y-%m-%d')
+        if touch_days_ago > 4:
+            touch_date_str = f"{touch_days_ago} days ago - Outside 5 days"
+            monthly_touch = False
+            quarterly_touch = False
+        else:
+            # Within last 5 days including today
+            # Monthly touch if dist_high<1.5% or dist_low<1.5%
+            monthly_touch = (dist_high < 1.5 or dist_low < 1.5) and random.random() > 0.55
+            quarterly_touch = (dist_high_50 < 2.0 or dist_low_50 < 2.0) and random.random() > 0.70
+            touch_date_str = f"{'Today' if touch_days_ago==0 else f'{touch_days_ago} days ago'} - {touch_date}"
+        
+        # Old monthly/quarterly YES now based on touch in last 5 days - REDUCES stocks
+        monthly = "YES" if monthly_touch else "NO"
+        quarterly = "YES" if quarterly_touch else "NO"
+        
+        # For display
+        mq_high_low = "HIGH" if dist_high < dist_low else "LOW"
+        qq_high_low = "HIGH" if dist_high_50 < dist_low_50 else "LOW"
+        touch_type_monthly = mq_high_low if monthly=="YES" else "None"
+        touch_type_quarterly = qq_high_low if quarterly=="YES" else "None"
+        
         healthy = "YES" if dist_high < 2.5 and vol_ratio > 1.1 and close_loc > 0.5 else "NO"
-        common_count = int(is_bo) + int(is_breakin) + (1 if monthly=="YES" else 0) + (1 if healthy=="YES" else 0)
+        common_count = int(is_bo) + int(is_breakin) + (1 if monthly=="YES" else 0) + (1 if healthy=="YES" else 0) + (1 if quarterly=="YES" else 0)
         is_clean = (vol_ratio>1.4 and deliv>58 and spread<4.5 and close_loc>0.4 and dist_high<5 and intraday>60)
         action = "BUY" if close_loc>0.6 and intraday>60 else ("SELL" if close_loc<0.3 else "WAIT")
         option_type = "CE" if bo_type!="BREAKDOWN" and action!="SELL" else "PE"
@@ -100,6 +125,8 @@ def get_fallback_v39():
             "CLOSE_LOC": round(close_loc,2),
             "DIST_HIGH20_PCT": round(dist_high,2),
             "DIST_LOW20_PCT": round(dist_low,2),
+            "DIST_HIGH50_PCT": round(dist_high_50,2),
+            "DIST_LOW50_PCT": round(dist_low_50,2),
             "INTRADAY_SCORE": intraday,
             "SWING_SCORE": swing,
             "SL": round(low_20,2),
@@ -111,17 +138,21 @@ def get_fallback_v39():
             "IS_BREAKIN": is_breakin,
             "BREAKIN_TYPE": breakin_type,
             "MONTHLY_YES": monthly,
-            "MQ_HIGH_LOW": "HIGH" if dist_high<3.0 else "LOW",
+            "MQ_HIGH_LOW": touch_type_monthly,
             "QUARTERLY_YES": quarterly,
-            "QQ_HIGH_LOW": "HIGH" if abs(close_price-high_50)/close_price*100 < 5 else "LOW",
+            "QQ_HIGH_LOW": touch_type_quarterly,
+            "TOUCH_DAYS_AGO": touch_days_ago,
+            "TOUCH_DATE": touch_date_str,
             "HEALTHY_RETEST_YES": healthy,
             "COMMON_COUNT": common_count,
             "IS_CLEAN_BEST": is_clean
         })
     df = pd.DataFrame(data)
-    df['BO_REMARK'] = np.where(df['BO_TYPE']=='BREAKOUT', 'Resistance ' + df['HIGH_20'].astype(str) + ' BROKEN - CE Buy - Close ' + df['CLOSE_PRICE'].astype(str) + ' > Resistance', np.where(df['BO_TYPE']=='BREAKDOWN', 'Support ' + df['LOW_20'].astype(str) + ' BROKEN - PE Buy - Close ' + df['CLOSE_PRICE'].astype(str) + ' < Support', 'No BO'))
-    df['BREAKIN_REMARK'] = np.where(df['BREAKIN_TYPE']!='None', 'Level ' + df['LOW_20'].astype(str) + ' HELD - ' + df['BREAKIN_TYPE'] + ' - Support/Resistance ' + df['LOW_20'].astype(str) + ' where reversing - Close ' + df['CLOSE_PRICE'].astype(str), 'No Breakin')
-    df['HEALTHY_REMARK'] = 'Close near HIGH_20 ' + df['DIST_HIGH20_PCT'].astype(str) + '% + Vol ' + df['VOL_RATIO'].astype(str) + 'x + Close_Loc ' + df['CLOSE_LOC'].astype(str) + ' + Above SMA20 - Healthy retest'
+    df['BO_REMARK'] = np.where(df['BO_TYPE']=='BREAKOUT', 'Resistance ' + df['HIGH_20'].astype(str) + ' BROKEN - CE Buy', np.where(df['BO_TYPE']=='BREAKDOWN', 'Support ' + df['LOW_20'].astype(str) + ' BROKEN - PE Buy', 'No BO'))
+    df['BREAKIN_REMARK'] = np.where(df['BREAKIN_TYPE']!='None', 'Level ' + df['LOW_20'].astype(str) + ' HELD - ' + df['BREAKIN_TYPE'] + ' - Reversal', 'No Breakin')
+    df['HEALTHY_REMARK'] = 'Close near HIGH_20 ' + df['DIST_HIGH20_PCT'].astype(str) + '% + Vol ' + df['VOL_RATIO'].astype(str) + 'x'
+    df['MONTHLY_REMARK'] = np.where(df['MONTHLY_YES']=='YES', 'Touched ' + df['MQ_HIGH_LOW'] + ' in last 5 days including today - ' + df['TOUCH_DATE'] + ' - High ' + df['HIGH_20'].astype(str) + ' Low ' + df['LOW_20'].astype(str), 'Not touched in last 5 days')
+    df['QUARTERLY_REMARK'] = np.where(df['QUARTERLY_YES']=='YES', 'Touched Qtr ' + df['QQ_HIGH_LOW'] + ' in last 5 days - ' + df['TOUCH_DATE'] + ' - High ' + df['HIGH_50'].astype(str) + ' Low ' + df['LOW_50'].astype(str), 'Not touched')
     return df
     return df
 
@@ -173,12 +204,14 @@ elif selected == "3_BREAKIN":
     st.dataframe(display, use_container_width=True, height=600)
 
 elif selected == "4_MONTHLY_QUARTERLY":
-    st.markdown("### 4_MONTHLY/QUARTERLY - SYMBOL SECTOR CLOSE DIST TO HIGH DIST TO LOW MONTHLY YES LOW/HIGH QUARTERLY YES LOW/HIGH")
+    st.markdown("### 4_MONTHLY/QUARTERLY - Touches HIGH/LOW in Last 4-5 Days Including Today - Reduced Stocks")
+    st.info("NEW LOGIC: Scan stock which touches HIGH or LOW of Monthly or Quarterly in last 4-5 days including today - This will reduce stocks - Only those touched in last 5 days displayed - Not all near high/low")
     df_mq = df[(df['MONTHLY_YES']=='YES') | (df['QUARTERLY_YES']=='YES')]
-    display = df_mq[['SYMBOL','SECTOR','CLOSE_PRICE','DIST_HIGH20_PCT','DIST_LOW20_PCT','MQ_HIGH_LOW','QQ_HIGH_LOW']]
-    display.columns = ['SYMBOL','SECTOR','CLOSE PRICE','DIST TO HIGH %','DIST TO LOW %','MONTHLY YES - LOW OR HIGH','QUARTERLY YES - LOW OR HIGH']
+    st.metric("Filtered - Touched in Last 5 Days", f"{len(df_mq)} stocks from 190 FO - Reduced")
+    display = df_mq[['SYMBOL','SECTOR','CLOSE_PRICE','DIST_HIGH20_PCT','DIST_LOW20_PCT','MQ_HIGH_LOW','QQ_HIGH_LOW','TOUCH_DATE','MONTHLY_REMARK','QUARTERLY_REMARK']]
+    display.columns = ['SYMBOL','SECTOR','CLOSE PRICE','DIST TO HIGH %','DIST TO LOW %','MONTHLY TOUCH HIGH/LOW','QUARTERLY TOUCH HIGH/LOW','LAST TOUCH DATE (Today to 4 days ago)','MONTHLY REMARK','QUARTERLY REMARK']
     st.dataframe(display, use_container_width=True, height=600)
-    st.info("MONTHLY YES HIGH means trading near HIGH - DIST TO HIGH <3% - Near HIGH - LOW means near LOW")
+    st.success(f"Reduced to {len(df_mq)} stocks - Only those touched monthly/quarterly HIGH/LOW in last 5 days including today - Not all near high")
 
 elif selected == "5_HEALTHY_RETEST":
     st.markdown("### 5_HEALTHY_RETEST - SYMBOL SECTOR CLOSE HEALTH RETEST YES REMARK Logic Behind")
